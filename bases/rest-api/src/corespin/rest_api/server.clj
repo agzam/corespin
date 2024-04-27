@@ -8,8 +8,10 @@
    [reitit.ring :as ring]
    [reitit.ring.coercion :as coercion]
    [reitit.ring.middleware.exception :as exception]
+   [reitit.ring.middleware.multipart :as multipart]
    [reitit.ring.middleware.muuntaja :as muuntaja]
    [reitit.ring.middleware.parameters :as parameters]
+   [reitit.swagger-ui :as swagger-ui]
    [ring.adapter.jetty :as jetty])
   (:import [org.eclipse.jetty.server Server])
   (:gen-class))
@@ -26,20 +28,14 @@
                   (log/error
                    (reitit.exception/format-exception :path-confilcts nil conflicts)))
      :data {:muuntaja m/instance
-            :middleware [;; swagger feature
-                         ;; swagger/swagger-feature
-                         ;; query-params & form-params
+            :middleware [;; query-params & form-params
                          parameters/parameters-middleware
                          ;; content-negotiation
                          muuntaja/format-negotiate-middleware
                          ;; encoding response body
                          muuntaja/format-response-middleware
                          ;; exception handling
-                         (exception/create-exception-middleware
-                          {::exception/default
-                           (partial
-                            exception/wrap-log-to-console
-                            exception/default-handler)})
+                         exception/exception-middleware
                          ;; decoding request body
                          muuntaja/format-request-middleware
                          ;; coercing response bodys
@@ -47,10 +43,11 @@
                          ;; coercing request parameters
                          coercion/coerce-request-middleware
                          ;; multipart
-                         ;; multipart/multipart-middleware
+                         multipart/multipart-middleware
                          ]}})
    (ring/routes
-    (ring/create-resource-handler {:path "/"})
+    #_(ring/create-resource-handler {:path "/"})
+    (swagger-ui/create-swagger-ui-handler {:path "/"})
     (ring/create-default-handler
      {:not-found (constantly {:status 404
                               :header {"Content-Type" "text/html"}
