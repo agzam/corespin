@@ -9,3 +9,8 @@
    Keys are sought on each level, not just at the top level of the structure."
   [filepath key search-str]
   (core/search filepath key search-str))
+
+(defn indicators-all
+  "Returns all indicators in a given file."
+  [filepath]
+  (core/indicators-all filepath))
