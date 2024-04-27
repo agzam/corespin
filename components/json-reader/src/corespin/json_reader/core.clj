@@ -50,7 +50,10 @@
    that contains the specified `search-str`
 
    Keys are sought on each level of each map, not just at the top level."
-  [coll key search-str])
+  [coll key search-str]
+  (filter
+   #(kv-match? % key search-str)
+   coll))
 
 (defn search
   [filepath key search-str]

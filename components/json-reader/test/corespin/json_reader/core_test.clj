@@ -50,3 +50,33 @@
                   gen/boolean
                   gen/small-integer
                   (s/gen inst?)]))))
+
+(deftest find-maps
+  (testing "simple colls"
+    (let [example [{:foo "foo"}
+                   {:bar "bar"}
+                   {:zap {:zop "zap zop"
+                          :zip {:zap "zip zap"}}}]]
+      (are [k ss exp] (= exp (core/find-maps example k ss))
+        :foo "foo" [{:foo "foo"}]
+        :foo nil   []
+        :foo 1     []
+        :foo "oo"  [{:foo "foo"}]
+        :zip "zap" []
+        :zap nil   []
+        :zap "zap" [{:zap {:zop "zap zop"
+                           :zip {:zap "zip zap"}}}]
+        :zap " "   []
+        :zap "zip" [{:zap {:zop "zap zop"
+                           :zip {:zap "zip zap"}}}]
+        :zap "p z" [{:zap {:zop "zap zop"
+                           :zip {:zap "zip zap"}}}])))
+  (testing "edge cases"
+    (are [m k ss exp] (= exp (core/find-maps m k ss))
+      nil          nil  nil   []
+      nil          :foo "foo" []
+      []           :foo "foo" []
+      [{}]         :foo "foo" []
+      [{:foo []}]  :foo ""    []
+      [{:foo nil}] :foo nil   []
+      [{:foo ""}]  :foo ""    [])))
