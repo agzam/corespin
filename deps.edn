@@ -1,0 +1,12 @@
+{:deps {org.clojure/clojure {:mvn/version "1.11.1"}
+        org.clojure/spec.alpha {:mvn/version "0.4.233"}}
+ :aliases
+ {:dev {:extra-paths ["development/src"]
+
+        :extra-deps {poly/json-reader {:local/root "components/json-reader"}}}
+
+  :test {:extra-deps {org.clojure/test.check {:mvn/version "1.1.1"}}
+         :extra-paths ["components/json-reader/test"]}
+
+  :poly {:main-opts ["-m" "polylith.clj.core.poly-cli.core"]
+         :extra-deps {polylith/clj-poly {:mvn/version "0.2.19"}}}}}
