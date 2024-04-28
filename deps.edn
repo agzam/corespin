@@ -8,6 +8,7 @@
  {:dev {:extra-paths ["development/src"]
 
         :extra-deps {poly/json-reader {:local/root "components/json-reader"}
+                     poly/sqlite-store {:local/root "components/sqlite-store"}
 
                      poly/rest-api {:local/root "bases/rest-api"}
 
@@ -15,7 +16,7 @@
 
   :test {:extra-deps {org.clojure/test.check {:mvn/version "1.1.1"}}
          :extra-paths ["components/json-reader/test"
-                       "components/api-server/test"
+                       "components/sqlite-store/test"
                        "bases/rest-api/test"]}
 
   :poly {:main-opts ["-m" "polylith.clj.core.poly-cli.core"]

@@ -4,6 +4,7 @@
    [corespin.rest-api.routes :refer [routes]]
    [integrant.core :as ig]
    [muuntaja.core :as m]
+   [reitit.coercion.spec]
    [reitit.exception]
    [reitit.ring :as ring]
    [reitit.ring.coercion :as coercion]
@@ -27,7 +28,8 @@
     {:conflicts (fn [conflicts]
                   (log/error
                    (reitit.exception/format-exception :path-confilcts nil conflicts)))
-     :data {:muuntaja m/instance
+     :data {:coercion reitit.coercion.spec/coercion
+            :muuntaja m/instance
             :middleware [;; query-params & form-params
                          parameters/parameters-middleware
                          ;; content-negotiation
