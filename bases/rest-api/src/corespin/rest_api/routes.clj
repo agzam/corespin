@@ -1,8 +1,9 @@
 (ns corespin.rest-api.routes
   (:require
+   [corespin.json-reader.interface :as json-reader]
+   [corespin.sqlite-store.interface :as sqlite-store]
    [reitit.ring.middleware.multipart :as multipart]
    [reitit.swagger :as swagger]
-   [corespin.sqlite-store.interface :as sqlite-store]
    [reitit.swagger-ui :as swagger-ui]))
 
 (def routes
@@ -17,14 +18,10 @@
      {:summary "upload JSON data with investigation feed"
       :parameters {:multipart {:file multipart/temp-file-part}}
       :handler (fn [{{{:keys [file]} :multipart} :parameters}]
-                 (let [res (sqlite-store/injest-investigation-data
-                            file)]
-                   (println res))
-                 {:status 200
-                  :body "Uploaded yo!"})
-      :swagger {:consumes ["multipart/form-data"]}
-      }}
-    ]
+                 (let [inv-data (json-reader/parse-investigation-data (:tempfile file))
+                       {:keys [feeds indicators]} (sqlite-store/injest-investigation-data inv-data)]
+                   {:status 200
+                    :body {:result (format "imported %s feeds with %s indicators" feeds indicators)}}))}}]
    ["/indicators"
     {:get {:summary "get list of all indicators"
            :handler (fn [_]

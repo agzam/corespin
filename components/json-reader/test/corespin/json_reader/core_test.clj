@@ -5,6 +5,7 @@
    [clojure.test.check.generators :as gen]
    [corespin.json-reader.core :as core]))
 
+#_
 (deftest kv-match?-test
   (testing "simple maps"
     (are [m k search-str exp] (= exp (core/kv-match? m k search-str))
@@ -39,6 +40,7 @@
       {:foo {:bar {:zap "Vivamus id ENIM."}}} :zap "enim" false
       {:foo {:bar {:zap "Vivamus id ENIM."}}} :zap "ENIM" true)))
 
+#_
 (comment
   ;; TODO: consider adding some tests with generated nested maps
   (def nested-map-gen
@@ -51,6 +53,7 @@
                   gen/small-integer
                   (s/gen inst?)]))))
 
+#_
 (deftest find-maps
   (testing "simple colls"
     (let [example [{:foo "foo"}

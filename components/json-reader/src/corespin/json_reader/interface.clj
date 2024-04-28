@@ -10,7 +10,13 @@
 ;;   [filepath key search-str]
 ;;   (core/search filepath key search-str))
 
-(defn indicators-all
-  "Returns all indicators in a given file."
-  [filepath]
-  (core/indicators-all filepath))
+;; (defn indicators-all
+;;   "Returns all indicators in a given file."
+;;   [filepath]
+;;   (core/indicators-all filepath))
+
+(defn parse-investigation-data
+  "Reads and parses investigation feed JSON.
+  returns map of feeds, indicators and tags."
+  [json-file]
+  (core/parse-investigation-data json-file))
