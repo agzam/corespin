@@ -1,10 +1,17 @@
 (ns corespin.rest-api.routes
   (:require
+   [clojure.spec.alpha :as s]
    [corespin.json-reader.interface :as json-reader]
    [corespin.sqlite-store.interface :as sqlite-store]
    [reitit.ring.middleware.multipart :as multipart]
    [reitit.swagger :as swagger]
    [reitit.swagger-ui :as swagger-ui]))
+
+(s/def :indicator/type string?)
+(s/def :indicator/tlp #{"red" "amber" "green" "white"})
+(s/def :indicator/indicator string?)
+(s/def :page/limit nat-int?)
+(s/def :page/offset nat-int?)
 
 (def routes
   [["/swagger.json"
@@ -24,6 +31,12 @@
                     :body {:result (format "imported %s feeds with %s indicators" feeds indicators)}}))}}]
    ["/indicators"
     {:get {:summary "get list of all indicators"
-           :handler (fn [_]
-                      {:status 200
-                       :body "TODOS INDICATORES"})}}]])
+           :parameters {:query (s/keys :opt-un [:indicator/type
+                                                :indicator/tlp
+                                                :indicator/indicator
+                                                :page/limit
+                                                :page/offset])}
+           :handler (fn [{{query-params :query} :parameters}]
+                      (let [res (sqlite-store/get-indicators query-params)]
+                        {:status 200
+                         :body {:data res}}))}}]])

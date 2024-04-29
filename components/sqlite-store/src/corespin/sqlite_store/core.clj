@@ -5,10 +5,21 @@
    [honey.sql :as sql]
    [honey.sql.helpers :as h :refer [insert-into values]]
    [next.jdbc :as jdbc :refer [execute!]]
+   [next.jdbc.result-set :as rs]
    [next.jdbc.sql :refer [insert! query]]))
 
 (def dbfile "./investigation.sqlite3")
 (def ds "sqlite datasource" (atom nil))
+
+(sql/register-clause!
+ :insert-or-ignore-into
+ (fn [clause x]
+   (let [[sql & params]
+         (if (ident? x)
+           (sql/format-expr x)
+           (sql/format-dsl x))]
+     (into [(str (sql/sql-kw clause) " " sql)] params)))
+ :insert-into)
 
 (def create-tables
   ["create table if not exists feed (
@@ -20,7 +31,7 @@
     author_name text,
     revision integer,
     adversary text,
-    tlp text,               /* serialized */
+    tlp text,
     industries text,        /* serialized */
     targeted_countries text /* serialized */
 );"
@@ -56,7 +67,6 @@
       (doseq [table create-tables]
         (execute! @ds [table])))))
 
-
 (defn injest-investigation-data
   [data]
   (init-ds)
@@ -69,7 +79,7 @@
                            sql/format (execute! tx)
                            first :next.jdbc/update-count)]
           (doseq [tag tags]
-            (->> {:replace-into :tag
+            (->> {:insert-or-ignore-into :tag
                   :values [{:tag tag}]}
                  sql/format (execute! tx))
             (let [tag-id (->> {:select [:id]
@@ -78,17 +88,70 @@
                               sql/format
                               (query tx)
                               first :tag/id)]
-              (->> {:replace-into :feed__tags
+              (->> {:insert-or-ignore-into :feed__tags
                     :values [{:feed_id id :tag_id tag-id}]}
                    sql/format (execute! tx))))
           (doseq [indicator indicators]
             (let [ind-ct (->> {:insert-or-ignore-into :indicator :values [indicator]}
                               sql/format (jdbc/execute! tx)
                               first :next.jdbc/update-count)]
-             (->> {:replace-into :feed__indicators
-                   :values [{:feed_id id
-                             :indicator_id (:id indicator)}]}
-                  sql/format (jdbc/execute! tx))
-             (swap! counters update :indicators + ind-ct)))
-         (swap! counters update :feeds + feed-ct))))
+              (->> {:insert-or-ignore-into :feed__indicators
+                    :values [{:feed_id id
+                              :indicator_id (:id indicator)}]}
+                   sql/format (jdbc/execute! tx))
+              (swap! counters update :indicators + ind-ct)))
+          (swap! counters update :feeds + feed-ct))))
     @counters))
+
+(defn add-where-clause
+  [q {:keys [type tlp indicator]}]
+  (merge
+   q
+   {:where (cond-> [:and]
+             type (conj [:= :i.type type])
+             indicator (conj [:= :i.indicator indicator])
+             tlp (conj [:= :f.tlp tlp]))}))
+
+(defn get-indicators
+  ""
+  [{:keys [_type _tlp _indicator
+           limit offset] :as params}]
+  (init-ds)
+  (let [q (cond-> {:select [:f.* :i.*
+                            [[:raw (str "(SELECT group_concat(t.tag, ', ') "
+                                        "FROM tag AS t "
+                                        "JOIN feed__tags AS ft ON ft.tag_id = t.id "
+                                        "WHERE ft.feed_id = f.id)")]
+                             :tags]]
+                   :from [[:indicator :i]]
+                   :join [[:feed__indicators :fi] [:= :fi.feed_id :f.id]
+                          [:feed :f] [:= :i.id :fi.indicator_id]]
+                   :where [:and [:= :i.indicator "123.151.149.222"]]
+                   :group-by [:i.id]
+                   :limit 100}
+
+            true (add-where-clause params)
+            limit (merge {:limit limit})
+            offset (merge {:offset offset})
+            true (sql/format))]
+    (query @ds q {:builder-fn rs/as-unqualified-kebab-maps})))
+
+;; (query @ds
+;;  (get-indicators {:type "domain" :limit 3}))
+
+;; (let [q (->> {:select [:f.* :i.*
+;;                        [[:raw "(SELECT group_concat(t.tag, ', ') FROM tag AS t JOIN feed__tags AS ft ON ft.tag_id = t.id WHERE ft.feed_id = f.id)"]
+;;                         :tags]]
+;;               :from [[:indicator :i]]
+;;               :join [[:feed__indicators :fi] [:= :fi.feed_id :f.id]
+;;                      [:feed :f] [:= :i.id :fi.indicator_id]]
+;;               :where [:and [:= :i.indicator "123.151.149.222"]]
+;;               :group-by [:i.id]
+;;               :limit 100}
+;;              (sql/format))]
+;;   (query @ds q #_{:builder-fn rs/as-unqualified-lower-maps}))
+
+;; (query @ds
+;;        (sql/format
+;;         {:select [[[:count :*] :count]]
+;;          :from :indicator}))
