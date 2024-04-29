@@ -2,14 +2,14 @@
   (:refer-clojure :exclude [test])
   (:require [clojure.tools.build.api :as b]))
 
-(def app 'corespin-investigation-api)
+(def app 'investigation-api)
 (def main 'corespin.rest-api.server)
 (def class-dir "target/classes")
 
 (defn- uber-opts [opts]
   (assoc opts
          :main main
-         :uber-file (format "target/%s-standalone.jar" app)
+         :uber-file (format "target/%s.jar" app)
          :basis (b/create-basis {})
          :class-dir class-dir
          :src-dirs ["src"]
