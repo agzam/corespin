@@ -1,9 +1,6 @@
-{:deps {org.clojure/clojure {:mvn/version "1.11.1"}
+{:deps {org.clojure/clojure {:mvn/version "1.11.3"}
         org.clojure/spec.alpha {:mvn/version "0.4.233"}
-        integrant/integrant {:mvn/version "0.9.0-alpha4"}
-        org.clojure/tools.logging {:mvn/version "1.3.0"}
-        org.slf4j/log4j-over-slf4j {:mvn/version "2.0.13"}
-        org.slf4j/slf4j-jdk14 {:mvn/version "2.0.13"}}
+        integrant/integrant {:mvn/version "0.9.0-alpha4"}}
  :aliases
  {:dev {:extra-paths ["development/src"]
 
@@ -15,9 +12,10 @@
                      integrant/repl {:mvn/version "0.3.3"}}}
 
   :test {:extra-deps {org.clojure/test.check {:mvn/version "1.1.1"}}
-         :extra-paths ["components/json-reader/test"
-                       "components/sqlite-store/test"
-                       "bases/rest-api/test"]}
+         :extra-paths ["bases/rest-api/test"
+
+                       "components/json-reader/test"
+                       "components/sqlite-store/test"]}
 
   :poly {:main-opts ["-m" "polylith.clj.core.poly-cli.core"]
          :extra-deps {polylith/clj-poly {:mvn/version "0.2.19"}}}}}

@@ -67,4 +67,4 @@
   (let [cfg (cond-> config
               port (assoc-in [:corespin.rest-api.server/jetty :port] port))]
     (ig/load-namespaces cfg)
-    (ig/prep cfg)))
+    (ig/init (ig/prep cfg))))

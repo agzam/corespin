@@ -1,0 +1,16 @@
+{:paths ["src" "resources"]
+
+ :deps {poly/base-rest-api {:local/root "../../bases/rest-api"}
+
+        poly/json-reader {:local/root "../../components/json-reader"}
+
+        poly/sqlite-store {:local/root "../../components/sqlite-store"}
+
+        org.clojure/clojure {:mvn/version "1.11.3"}}
+
+ :aliases {:test {:extra-paths ["test"]
+                  :extra-deps {}}
+
+           :build {:replace-deps
+                   {io.github.clojure/tools.build {:mvn/version "0.10.0"}}
+                   :ns-default build}}}
