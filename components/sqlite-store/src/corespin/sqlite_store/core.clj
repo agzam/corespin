@@ -135,23 +135,3 @@
             offset (merge {:offset offset})
             true (sql/format))]
     (query @ds q {:builder-fn rs/as-unqualified-kebab-maps})))
-
-;; (query @ds
-;;  (get-indicators {:type "domain" :limit 3}))
-
-;; (let [q (->> {:select [:f.* :i.*
-;;                        [[:raw "(SELECT group_concat(t.tag, ', ') FROM tag AS t JOIN feed__tags AS ft ON ft.tag_id = t.id WHERE ft.feed_id = f.id)"]
-;;                         :tags]]
-;;               :from [[:indicator :i]]
-;;               :join [[:feed__indicators :fi] [:= :fi.feed_id :f.id]
-;;                      [:feed :f] [:= :i.id :fi.indicator_id]]
-;;               :where [:and [:= :i.indicator "123.151.149.222"]]
-;;               :group-by [:i.id]
-;;               :limit 100}
-;;              (sql/format))]
-;;   (query @ds q #_{:builder-fn rs/as-unqualified-lower-maps}))
-
-;; (query @ds
-;;        (sql/format
-;;         {:select [[[:count :*] :count]]
-;;          :from :indicator}))
