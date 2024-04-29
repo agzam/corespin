@@ -18,33 +18,43 @@
    (keys m)
    (->> m vals (map json/parse-string))))
 
-(defn parse-investigation-data [json-file]
+(defn feeds->inv-data
+  [feeds]
+  (->>
+   feeds
+   (reduce
+    (fn [acc n]
+      (let [feed (-> n (select-keys [:id
+                                     :name
+                                     :description
+                                     :created
+                                     :modified
+                                     :author_name
+                                     :revision
+                                     :tlp
+                                     :adversary])
+                     (merge (-> n
+                                (select-keys [:industries
+                                              :targeted_countries])
+                                serialize)))
+            indicators (->> n :indicators
+                            (map #(select-keys % [:id
+                                                  :description
+                                                  :created
+                                                  :indicator
+                                                  :type])))]
+        (-> acc
+            (update :feeds conj feed)
+            (assoc-in [:tags (:id n)] (:tags n))
+            (assoc-in [:indicators (:id n)] indicators))))
+    {:feeds [] :tags {} :indicators {}})))
+
+(defn parse-investigation-data
+  "Converts feed JSON data file into an investigation data map,
+  essentially reorganizing it. Nested indicators and tags within each feed
+  get separated for easier processing later."
+  [json-file]
   (with-open [reader (io/reader json-file)]
     (->>
      (json/parse-stream reader true)
-     (reduce
-      (fn [acc n]
-        (let [feed (-> n (select-keys [:id
-                                       :name
-                                       :description
-                                       :created
-                                       :modified
-                                       :author_name
-                                       :revision
-                                       :tlp
-                                       :adversary])
-                       (merge (-> n
-                                  (select-keys [:industries
-                                                :targeted_countries])
-                                  serialize)))
-              indicators (->> n :indicators
-                              (map #(select-keys % [:id
-                                                    :description
-                                                    :created
-                                                    :indicator
-                                                    :type])))]
-          (-> acc
-              (update :feeds conj feed)
-              (assoc-in [:tags (:id n)] (:tags n))
-              (assoc-in [:indicators (:id n)] indicators))))
-      {:feeds [] :tags {} :indicators {}}))))
+     feeds->inv-data)))
