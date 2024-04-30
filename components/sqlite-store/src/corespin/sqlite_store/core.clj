@@ -69,7 +69,7 @@
 
 (defn injest-investigation-data
   ([data]
-   (injest-investigation-data data default-db-file))
+   (injest-investigation-data data (init-ds default-db-file)))
   ([data db]
    (init-ds db)
    (let [counters (atom {:feeds 0 :indicators 0})]
