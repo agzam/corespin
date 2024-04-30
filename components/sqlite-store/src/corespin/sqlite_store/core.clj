@@ -57,8 +57,11 @@
 (defn init-ds
   "Initialize datasource"
   [db-file-path]
-  (let [create-tables? (not (.exists (java.io.File. db-file-path)))
-        ds (format "jdbc:sqlite:%s" db-file-path)]
+  (let [ds (format "jdbc:sqlite:%s" db-file-path)
+        create-tables? (or (not (.exists (java.io.File. db-file-path)))
+                           (empty? (query ds (sql/format
+                                              {:select [:name] :from :sqlite_master
+                                               :where [:= type "table"]}))))]
     (when create-tables?
       (doseq [table create-tables]
         (execute! ds [table])))
@@ -66,9 +69,9 @@
 
 (defn injest-investigation-data
   ([data]
-   (let [db (init-ds default-db-file)]
-     (injest-investigation-data data db)))
+   (injest-investigation-data data default-db-file))
   ([data db]
+   (init-ds db)
    (let [counters (atom {:feeds 0 :indicators 0})]
      (doseq [{:keys [id] :as feed} (:feeds data)
              :let [tags (-> data :tags (get id))
