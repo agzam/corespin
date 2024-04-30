@@ -1,4 +1,6 @@
 {:paths ["src" "resources"]
- :deps {cheshire/cheshire {:mvn/version "5.13.0"}}
+ :deps  {cheshire/cheshire {:mvn/version "5.13.0"}
+
+         poly/specs {:local/root "../../components/specs"}}
  :aliases {:test {:extra-paths ["test"]
-                  :extra-deps {}}}}
+                  :extra-deps  {}}}}

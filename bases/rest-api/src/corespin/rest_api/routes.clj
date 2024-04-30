@@ -4,8 +4,7 @@
    [corespin.json-reader.interface :as json-reader]
    [corespin.sqlite-store.interface :as sqlite-store]
    [reitit.ring.middleware.multipart :as multipart]
-   [reitit.swagger :as swagger]
-   [reitit.swagger-ui :as swagger-ui]))
+   [reitit.swagger :as swagger]))
 
 (s/def :indicator/type string?)
 (s/def :indicator/tlp #{"red" "amber" "green" "white"})
@@ -24,11 +23,16 @@
     {:post
      {:summary "upload JSON data with investigation feed"
       :parameters {:multipart {:file multipart/temp-file-part}}
-      :handler (fn [{{{:keys [file]} :multipart} :parameters}]
-                 (let [inv-data (json-reader/parse-investigation-data (:tempfile file))
-                       {:keys [feeds indicators]} (sqlite-store/injest-investigation-data inv-data)]
-                   {:status 200
-                    :body {:result (format "imported %s feeds with %s indicators" feeds indicators)}}))}}]
+      :handler
+      (fn [{{{:keys [file]} :multipart} :parameters}]
+        (let [inv-data (json-reader/parse-investigation-data (:tempfile file))
+
+              {:keys [feeds indicators]}
+              (sqlite-store/injest-investigation-data inv-data)]
+          {:status 200
+           :body {:result
+                  (format "imported %s feeds with %s indicators"
+                          feeds indicators)}}))}}]
    ["/indicators"
     {:get {:summary "get list of all indicators"
            :parameters {:query (s/keys :opt-un [:indicator/type

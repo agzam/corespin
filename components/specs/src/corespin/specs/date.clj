@@ -1,4 +1,4 @@
-(ns corespin.data-specs.date
+(ns corespin.specs.date
   (:require
    [clojure.test.check.generators :as gen]
    [clojure.spec.alpha :as s]))

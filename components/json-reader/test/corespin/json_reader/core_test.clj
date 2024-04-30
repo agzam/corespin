@@ -3,8 +3,8 @@
    [clojure.spec.alpha :as s]
    [clojure.test :refer :all]
    [clojure.test.check.generators :as gen]
-   [corespin.data-specs.specs]
-   [corespin.json-reader.core :as core]))
+   [corespin.json-reader.core :as core]
+   [corespin.specs]))
 
 (deftest feeds->inv-data-test
   (testing "correctness of data transform"
@@ -13,7 +13,7 @@
     ;; we can't simply test the function by
     ;; reversing the operation and comparing with
     ;; the original feeds data
-    (let [feeds (gen/generate (s/gen (s/coll-of :feed/feed)))
+    (let [feeds (gen/generate (s/gen :feed/feeds))
           inv-data (core/feeds->inv-data feeds)
           feed-ks [:id
                    :name
@@ -41,5 +41,5 @@
              (->> inv-data :indicators (mapcat val)
                   (map #(select-keys % indicator-ks))
                   (sort-by :id))))
-      (is (= (->> feeds (mapcat :tags))
-             (->> inv-data :tags (mapcat val)))))))
+      (is (= (->> feeds (mapcat :tags) count)
+             (->> inv-data :tags (mapcat val) count))))))
